@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Daily Woo</title>
+<meta name="description" content="Your daily memo from the universe — horoscope, tarot, fashion boost, and gratitude. Career and main-character energy only.">
+<meta name="theme-color" content="#2A2140">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Daily Woo">
+<link rel="icon" href="icons/icon-180.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<main id="onboarding" hidden>
+  <div class="ob-hero">
+    <div class="ob-mark">✦</div>
+    <h1>The Daily Woo</h1>
+    <p class="ob-tag">Your daily memo from the universe. Career, cash, and main-character energy — zero romance drama, guaranteed.</p>
+  </div>
+  <div class="card ob-card">
+    <label for="ob-name">What do the stars call you?</label>
+    <input id="ob-name" type="text" autocomplete="given-name" placeholder="Your name">
+    <label for="ob-birthday">Birthday</label>
+    <input id="ob-birthday" type="date">
+    <label for="ob-time">Birth time <span class="opt">(optional — unlocks moon &amp; rising)</span></label>
+    <input id="ob-time" type="time">
+    <button id="ob-go" class="btn-primary">Read my stars</button>
+    <p class="fine-print">Everything stays on your phone. No accounts, no tracking, no notes app apology posts.</p>
+  </div>
+</main>
+
+<main id="today" hidden>
+  <header class="hdr">
+    <div class="hdr-row">
+      <span id="hdr-date"></span>
+      <span id="hdr-moon"></span>
+    </div>
+    <p id="hdr-greeting" class="hdr-greeting"></p>
+    <p id="hdr-sub" class="hdr-sub"></p>
+  </header>
+
+  <section class="stack">
+    <div class="card">
+      <p class="kicker kicker-coral">✦ The daily read</p>
+      <p id="read-text" class="read"></p>
+      <p id="chart-note" class="chart-note" hidden></p>
+    </div>
+
+    <div class="card tint-plum">
+      <p class="kicker kicker-plum">☾ Vibe check</p>
+      <p id="vibe-text" class="body"></p>
+    </div>
+
+    <div class="chip-row">
+      <div class="chip tint-purple">
+        <p class="chip-label">Lucky number</p>
+        <p id="lucky-num" class="chip-big"></p>
+      </div>
+      <div class="chip tint-coral">
+        <p class="chip-label">Power color</p>
+        <p class="chip-big chip-color"><span id="color-dot" class="dot"></span><span id="color-name"></span></p>
+      </div>
+    </div>
+
+    <div class="card tarot">
+      <div class="tarot-card"><span id="tarot-icon"></span></div>
+      <div>
+        <p id="tarot-name" class="kicker kicker-purple"></p>
+        <p id="tarot-text" class="body"></p>
+      </div>
+    </div>
+
+    <div class="card tint-pink">
+      <p class="kicker kicker-pink">⚡ Fashion boost</p>
+      <p id="fashion-text" class="body"></p>
+    </div>
+
+    <div class="card tint-teal">
+      <p class="kicker kicker-teal">♡ Today's gratitude</p>
+      <p id="gratitude-text" class="body"></p>
+    </div>
+  </section>
+</main>
+
+<main id="you" hidden>
+  <header class="hdr">
+    <p class="hdr-greeting">Your chart</p>
+    <p class="hdr-sub">The coordinates the universe has on file</p>
+  </header>
+  <section class="stack">
+    <div id="you-badges" class="badges"></div>
+    <div class="card">
+      <label for="you-name">Name</label>
+      <input id="you-name" type="text">
+      <label for="you-birthday">Birthday</label>
+      <input id="you-birthday" type="date">
+      <label for="you-time">Birth time <span class="opt">(optional)</span></label>
+      <input id="you-time" type="time">
+      <button id="you-save" class="btn-primary">Save changes</button>
+    </div>
+    <div class="card">
+      <p class="kicker kicker-plum">About</p>
+      <p class="body">The Daily Woo is astrology as a delivery vehicle for hype. It is for entertainment, reflection, and group-chat screenshots — not financial, medical, or sartorial liability. Although the fashion advice is honestly pretty solid.</p>
+    </div>
+  </section>
+</main>
+
+<nav id="nav" hidden>
+  <button class="nav-btn" data-screen="today">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+    <span>Today</span>
+  </button>
+  <button class="nav-btn" data-screen="share">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.7 10.7l6.6-3.4M8.7 13.3l6.6 3.4"/></svg>
+    <span>Share</span>
+  </button>
+  <button class="nav-btn" data-screen="you">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+    <span>You</span>
+  </button>
+</nav>
+
+<div id="toast" role="status"></div>
+
+<script src="content.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
