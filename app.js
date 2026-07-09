@@ -2,6 +2,7 @@
 // Everything is deterministic: same person + same day = same memo, on any device.
 
 const STORE_KEY = "dailywoo.profile";
+const FEEDBACK_KEY = "dailywoo.feedback";
 
 // ---------- tiny deterministic toolkit ----------
 
@@ -31,12 +32,26 @@ function dayIndex(d) {
 }
 
 // Rotation pick: cycles the whole list before repeating, offset per person per list.
-function rotate(list, listName, profile, today) {
+function rotateIdx(list, listName, profile, today) {
   const offset = hashStr(profile.name + "|" + profile.birthday + "|" + listName) % list.length;
-  return list[(dayIndex(today) + offset) % list.length];
+  return (dayIndex(today) + offset) % list.length;
 }
 
-// ---------- astrology-ish math ----------
+function rotate(list, listName, profile, today) {
+  return list[rotateIdx(list, listName, profile, today)];
+}
+
+// ---------- astro math ----------
+// Real formulas, entertainment-grade tolerances. Sources: Meeus-style low-precision series.
+
+const DEG = Math.PI / 180;
+const SIGN_ORDER = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+
+function norm360(x) { return ((x % 360) + 360) % 360; }
+
+function signAtLongitude(lon) {
+  return WOO.signs.find(s => s.name === SIGN_ORDER[Math.floor(norm360(lon) / 30)]);
+}
 
 function parseBirthday(iso) {
   const [y, m, d] = iso.split("-").map(Number);
@@ -55,23 +70,74 @@ function sunSign(iso) {
   return best || WOO.signs.find(s => s.name === "Capricorn");
 }
 
-function moonSignAtBirth(iso) {
-  // Mean lunar longitude — sign-level accuracy, entertainment-grade by design.
-  const { y, m, d } = parseBirthday(iso);
-  const days = (Date.UTC(y, m - 1, d, 12) - Date.UTC(2000, 0, 1, 12)) / 86400000;
-  const lon = ((218.316 + 13.176396 * days) % 360 + 360) % 360;
-  const order = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-  return WOO.signs.find(s => s.name === order[Math.floor(lon / 30)]);
+// What time was it in UTC when the wall clock at `tz` read this local moment?
+function tzOffsetMs(utcMs, tz) {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+  });
+  const p = {};
+  for (const part of dtf.formatToParts(new Date(utcMs))) p[part.type] = part.value;
+  const asUTC = Date.UTC(+p.year, p.month - 1, +p.day, p.hour === "24" ? 0 : +p.hour, +p.minute, +p.second);
+  return asUTC - utcMs;
 }
 
-function risingSign(iso, birthTime) {
-  // Folk method: rising ≈ sun sign at sunrise, advancing one sign every 2 hours.
-  const sun = sunSign(iso);
-  const [hh] = birthTime.split(":").map(Number);
+function birthUTC(profile) {
+  const { y, m, d } = parseBirthday(profile.birthday);
+  const [hh, mm] = (profile.birthTime || "12:00").split(":").map(Number);
+  const wall = Date.UTC(y, m - 1, d, hh, mm);
+  const tz = profile.birthPlace && profile.birthPlace.tz;
+  if (!tz) return wall;
+  let utc = wall - tzOffsetMs(wall, tz);
+  utc = wall - tzOffsetMs(utc, tz);
+  return utc;
+}
+
+// Lunar ecliptic longitude with the main periodic terms (~1° accuracy — plenty for sign-level).
+function moonLongitude(utcMs) {
+  const d = (utcMs - Date.UTC(2000, 0, 1, 12)) / 86400000;
+  const Lp = 218.316 + 13.176396 * d;   // mean longitude
+  const Mp = 134.963 + 13.064993 * d;   // moon mean anomaly
+  const M = 357.529 + 0.98560028 * d;   // sun mean anomaly
+  const D = 297.850 + 12.190749 * d;    // mean elongation
+  return norm360(
+    Lp
+    + 6.289 * Math.sin(Mp * DEG)
+    + 1.274 * Math.sin((2 * D - Mp) * DEG)
+    + 0.658 * Math.sin(2 * D * DEG)
+    - 0.186 * Math.sin(M * DEG)
+    - 0.059 * Math.sin((2 * Mp - 2 * D) * DEG)
+    - 0.057 * Math.sin((Mp - 2 * D + M) * DEG)
+  );
+}
+
+function moonSignAtBirth(profile) {
+  return signAtLongitude(moonLongitude(birthUTC(profile)));
+}
+
+// True ascendant from birth moment + coordinates.
+function ascendantLongitude(utcMs, lat, lon) {
+  const jd = utcMs / 86400000 + 2440587.5;
+  const T = (jd - 2451545.0) / 36525;
+  const gmst = 280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T * T;
+  const ramc = norm360(gmst + lon) * DEG; // east longitude positive
+  const eps = (23.4392911 - 0.0130042 * T) * DEG;
+  const asc = Math.atan2(Math.cos(ramc), -(Math.sin(ramc) * Math.cos(eps) + Math.tan(lat * DEG) * Math.sin(eps)));
+  return norm360(asc / DEG);
+}
+
+function risingSign(profile) {
+  if (!profile.birthTime) return null;
+  const place = profile.birthPlace;
+  if (place && place.lat != null && place.tz) {
+    return { sign: signAtLongitude(ascendantLongitude(birthUTC(profile), place.lat, place.lon)), approx: false };
+  }
+  // Folk fallback when no birthplace: sun sign at sunrise, +1 sign per 2 hours.
+  const sun = sunSign(profile.birthday);
+  const [hh] = profile.birthTime.split(":").map(Number);
   const offset = Math.floor(((hh - 6 + 24) % 24) / 2);
-  const order = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-  const idx = (order.indexOf(sun.name) + offset) % 12;
-  return WOO.signs.find(s => s.name === order[idx]);
+  const idx = (SIGN_ORDER.indexOf(sun.name) + offset) % 12;
+  return { sign: WOO.signs.find(s => s.name === SIGN_ORDER[idx]), approx: true };
 }
 
 const SYNODIC = 29.53058867;
@@ -91,6 +157,26 @@ function luckyNumber(profile, today) {
   }
   while (total > 9) total = String(total).split("").reduce((a, c) => a + Number(c), 0);
   return total === 0 ? 7 : total;
+}
+
+// ---------- geocoding (one call at save time; result stored on-device) ----------
+
+async function geocode(placeText) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 7000);
+  try {
+    const url = "https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&format=json&name=" + encodeURIComponent(placeText);
+    const res = await fetch(url, { signal: ctl.signal });
+    const data = await res.json();
+    const hit = data.results && data.results[0];
+    if (!hit) return { name: placeText };
+    const label = [hit.name, hit.admin1, hit.country_code].filter(Boolean).join(", ");
+    return { name: label, lat: hit.latitude, lon: hit.longitude, tz: hit.timezone };
+  } catch {
+    return { name: placeText };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // ---------- the daily memo ----------
@@ -114,12 +200,13 @@ function buildMemo(profile, today) {
 
   let chartNote = null;
   if (profile.birthTime) {
-    const moon = moonSignAtBirth(profile.birthday);
-    const rising = risingSign(profile.birthday, profile.birthTime);
-    chartNote = "Chart notes: " + WOO.risingFlavor[rising.name] + ", and " + WOO.moonFlavor[moon.name] + ".";
+    const moon = moonSignAtBirth(profile);
+    const rising = risingSign(profile);
+    chartNote = "Chart notes: " + WOO.risingFlavor[rising.sign.name] + ", and " + WOO.moonFlavor[moon.name] + ".";
   }
 
-  const card = rotate(WOO.tarot, "tarot", profile, today);
+  const tarotIdx = rotateIdx(WOO.tarot, "tarot", profile, today);
+  const card = WOO.tarot[tarotIdx];
   const reversed = rand() < 0.3;
   const phase = moonPhase(today);
   const moonLine = rotate(WOO.moonLines[phase.name], "moon-" + phase.name, profile, today);
@@ -127,13 +214,14 @@ function buildMemo(profile, today) {
   return {
     sign, color, phase, moonLine, chartNote, read,
     lucky: luckyNumber(profile, today),
-    tarot: { name: card.name + (reversed ? " (reversed)" : ""), text: reversed ? card.rev : card.up, icon: card.icon },
+    tarotIdx, tarotReversed: reversed,
+    tarot: { name: card.name + (reversed ? " (reversed)" : ""), text: reversed ? card.rev : card.up },
     fashion: fill(rotate(WOO.fashion, "fashion", profile, today), ctx),
     gratitude: rotate(WOO.gratitude, "gratitude", profile, today)
   };
 }
 
-// ---------- profile ----------
+// ---------- profile & feedback storage ----------
 
 function loadProfile() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY)); } catch { return null; }
@@ -141,6 +229,28 @@ function loadProfile() {
 
 function saveProfile(p) {
   localStorage.setItem(STORE_KEY, JSON.stringify(p));
+}
+
+function loadFeedback() {
+  try { return JSON.parse(localStorage.getItem(FEEDBACK_KEY)) || []; } catch { return []; }
+}
+
+function saveVote(vote) {
+  const { memo } = window._memo;
+  const log = loadFeedback().filter(e => e.date !== dateKey(new Date()));
+  log.push({
+    date: dateKey(new Date()),
+    vote,
+    sign: memo.sign.name,
+    tarot: memo.tarot.name,
+    read: memo.read.slice(0, 90)
+  });
+  localStorage.setItem(FEEDBACK_KEY, JSON.stringify(log));
+}
+
+function todaysVote() {
+  const entry = loadFeedback().find(e => e.date === dateKey(new Date()));
+  return entry ? entry.vote : null;
 }
 
 // ---------- rendering ----------
@@ -155,6 +265,13 @@ function greeting(d) {
 function seasonLine(today, userSign) {
   const seasonSign = sunSign(dateKey(today));
   return seasonSign.name + " season · " + userSign.vibe;
+}
+
+function renderFeedbackButtons() {
+  const vote = todaysVote();
+  $("#fb-up").classList.toggle("voted", vote === "up");
+  $("#fb-down").classList.toggle("voted", vote === "down");
+  $("#fb-thanks").hidden = !vote;
 }
 
 function renderToday() {
@@ -179,12 +296,14 @@ function renderToday() {
 
   $("#tarot-name").textContent = "Tarot pull · " + memo.tarot.name;
   $("#tarot-text").textContent = memo.tarot.text;
-  $("#tarot-icon").textContent = memo.tarot.icon;
+  $("#tarot-art").innerHTML = tarotArt(memo.tarotIdx);
+  $("#tarot-art").classList.toggle("reversed", memo.tarotReversed);
 
   $("#fashion-text").textContent = memo.fashion;
   $("#gratitude-text").textContent = memo.gratitude;
 
   window._memo = { memo, dateLabel, profile };
+  renderFeedbackButtons();
 }
 
 function renderYou() {
@@ -192,14 +311,26 @@ function renderYou() {
   const sun = sunSign(profile.birthday);
   let badges = `<span class="badge">${sun.glyph} ${sun.name} sun</span>`;
   if (profile.birthTime) {
-    const moon = moonSignAtBirth(profile.birthday);
-    const rising = risingSign(profile.birthday, profile.birthTime);
-    badges += `<span class="badge">${moon.glyph} ${moon.name} moon</span><span class="badge">${rising.glyph} ${rising.name} rising</span>`;
+    const moon = moonSignAtBirth(profile);
+    const rising = risingSign(profile);
+    badges += `<span class="badge">${moon.glyph} ${moon.name} moon</span>`;
+    badges += `<span class="badge">${rising.sign.glyph} ${rising.sign.name} rising${rising.approx ? " ~" : ""}</span>`;
   }
   $("#you-badges").innerHTML = badges;
+  $("#you-place-hint").textContent = profile.birthPlace
+    ? (profile.birthPlace.lat != null ? "Charted: " + profile.birthPlace.name : "Couldn't chart \"" + profile.birthPlace.name + "\" — rising stays approximate (~)")
+    : (profile.birthTime ? "Add a birth place to sharpen your rising sign" : "");
   $("#you-name").value = profile.name;
   $("#you-birthday").value = profile.birthday;
   $("#you-time").value = profile.birthTime || "";
+  $("#you-place").value = profile.birthPlace ? profile.birthPlace.name : "";
+
+  const log = loadFeedback();
+  const ups = log.filter(e => e.vote === "up").length;
+  $("#fb-stats").textContent = log.length
+    ? log.length + " day" + (log.length === 1 ? "" : "s") + " rated · " + ups + " up · " + (log.length - ups) + " down"
+    : "No ratings yet — the thumbs live at the bottom of Today.";
+  $("#fb-export").hidden = log.length === 0;
 }
 
 function show(screen) {
@@ -212,11 +343,20 @@ function show(screen) {
   if (screen === "you") renderYou();
 }
 
-// ---------- share ----------
+// ---------- share & export ----------
 
-async function shareMemo() {
-  const { memo, dateLabel, profile } = window._memo;
-  const text = [
+async function shareText(text, copiedMsg) {
+  if (navigator.share) {
+    try { await navigator.share({ title: "The Daily Woo", text }); return; } catch { /* user cancelled */ }
+  } else {
+    try { await navigator.clipboard.writeText(text); toast(copiedMsg); }
+    catch { toast("Couldn't copy on this browser"); }
+  }
+}
+
+function shareMemo() {
+  const { memo, dateLabel } = window._memo;
+  return shareText([
     "The Daily Woo ✨ " + dateLabel,
     "",
     memo.read,
@@ -225,17 +365,13 @@ async function shareMemo() {
     "Lucky number " + memo.lucky + " · Power color: " + memo.color.name,
     "Fashion boost: " + memo.fashion,
     "Gratitude: " + memo.gratitude
-  ].join("\n");
-  if (navigator.share) {
-    try { await navigator.share({ title: "The Daily Woo", text }); return; } catch { /* user cancelled */ }
-  } else {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast("Copied — paste it in the group chat");
-    } catch {
-      toast("Couldn't copy on this browser");
-    }
-  }
+  ].join("\n"), "Copied — paste it in the group chat");
+}
+
+function exportFeedback() {
+  const log = loadFeedback();
+  const lines = log.map(e => e.date + " " + (e.vote === "up" ? "👍" : "👎") + " [" + e.tarot + "] " + e.read + "…");
+  return shareText("The Daily Woo — feedback log\n" + lines.join("\n"), "Log copied — send it to Mary");
 }
 
 let toastTimer;
@@ -249,29 +385,46 @@ function toast(msg) {
 
 // ---------- wiring ----------
 
-function readForm(prefix) {
+async function readForm(prefix) {
   const name = $("#" + prefix + "-name").value.trim();
   const birthday = $("#" + prefix + "-birthday").value;
   const birthTime = $("#" + prefix + "-time").value || null;
+  const placeText = $("#" + prefix + "-place").value.trim();
   if (!name || !birthday) { toast("Name and birthday, please — the stars need coordinates"); return null; }
-  return { name, birthday, birthTime };
+
+  let birthPlace = null;
+  if (placeText) {
+    const prev = loadProfile() && loadProfile().birthPlace;
+    if (prev && prev.name.toLowerCase() === placeText.toLowerCase()) {
+      birthPlace = prev; // unchanged — keep coordinates, skip the network
+    } else {
+      toast("Consulting the atlas…");
+      birthPlace = await geocode(placeText);
+      if (birthPlace.lat == null) toast("Couldn't find that city — rising sign stays approximate");
+    }
+  }
+  return { name, birthday, birthTime, birthPlace };
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  $("#ob-go").addEventListener("click", () => {
-    const p = readForm("ob");
+  $("#ob-go").addEventListener("click", async () => {
+    const p = await readForm("ob");
     if (!p) return;
     saveProfile(p);
     show("today");
   });
 
-  $("#you-save").addEventListener("click", () => {
-    const p = readForm("you");
+  $("#you-save").addEventListener("click", async () => {
+    const p = await readForm("you");
     if (!p) return;
     saveProfile(p);
     toast("Saved — the cosmos has been notified");
     renderYou();
   });
+
+  $("#fb-up").addEventListener("click", () => { saveVote("up"); renderFeedbackButtons(); toast("Noted — more of this energy coming up"); });
+  $("#fb-down").addEventListener("click", () => { saveVote("down"); renderFeedbackButtons(); toast("Noted — the stars will workshop it"); });
+  $("#fb-export").addEventListener("click", exportFeedback);
 
   for (const btn of document.querySelectorAll(".nav-btn")) {
     btn.addEventListener("click", () => {

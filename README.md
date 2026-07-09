@@ -7,9 +7,10 @@ main-character energy only; romance is permanently out of scope.
 ## What it is
 
 A zero-dependency, zero-backend mobile PWA. Friends open the link, enter a name and
-birthday (birth time optional — unlocks moon and rising flavor), and tap
+birthday (birth time and place optional — they unlock moon and rising signs), and tap
 "Add to Home Screen." Everything is stored on-device in localStorage; there are no
-accounts, no tracking, and no servers.
+accounts, no tracking, and no servers. The only network call is a one-time city
+lookup (Open-Meteo geocoding) when a birth place is saved.
 
 Readings are deterministic: the date + name + birthday seed the content engine, so the
 same person sees the same memo all day on any device, and no two people share one.
@@ -20,8 +21,9 @@ so full combinations don't repeat for ~80 days.
 
 - `index.html` — app shell (onboarding, today, you screens)
 - `content.js` — the entire voice of the app: signs, readings, tarot, fashion, gratitude
-- `app.js` — deterministic engine: seeding, zodiac/moon math, rendering, share
-- `styles.css` — midnight plum + warm cream design system
+- `cards.js` — hand-drawn SVG art for all 22 major arcana
+- `app.js` — deterministic engine: seeding, real ascendant/lunar math, rendering, share, feedback log
+- `styles.css` — deep plum night-sky design system with gold accents
 - `sw.js` — network-first service worker (updates flow, offline works)
 - `manifest.webmanifest`, `icons/` — PWA install metadata
 
@@ -38,7 +40,17 @@ python3 -m http.server 8000
 Push to GitHub, enable Pages on the main branch, and share the URL. Bump the
 `CACHE` version in `sw.js` when shipping content updates.
 
+## Feedback loop
+
+Each day's memo can be rated (thumbs up/down) at the bottom of Today. Votes are
+stored on-device with the date, tarot card, and a snippet of the read; the You screen
+shows the tally and a "Send feedback log to Mary" button (share sheet / clipboard).
+Use the logs to tune the voice in `content.js`.
+
 ## Accuracy disclaimer
 
-Moon phase uses the mean synodic month; moon and rising signs use folk approximations.
-This is by design — the app is entertainment-grade astrology with production-grade sass.
+Moon phase uses the mean synodic month. With a birth time and place, the rising sign
+is a true ascendant (sidereal-time formula, verified against an independent horizon
+search to within 0.02°) and the moon sign uses a six-term lunar series (~1°). Without
+a place, rising falls back to a folk approximation and is marked with a ~. The app
+remains entertainment-grade astrology with production-grade sass.

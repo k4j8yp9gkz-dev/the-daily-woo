@@ -1,8 +1,8 @@
 // The Daily Woo service worker — network-first so friends always get updates,
 // cache fallback so the morning memo works on the subway.
 
-const CACHE = "dailywoo-v1";
-const ASSETS = ["./", "index.html", "styles.css", "content.js", "app.js", "manifest.webmanifest", "icons/icon-180.png", "icons/icon-512.png"];
+const CACHE = "dailywoo-v2";
+const ASSETS = ["./", "index.html", "styles.css", "content.js", "cards.js", "app.js", "manifest.webmanifest", "icons/icon-180.png", "icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));

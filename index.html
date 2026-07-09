@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Daily Woo</title>
 <meta name="description" content="Your daily memo from the universe — horoscope, tarot, fashion boost, and gratitude. Career and main-character energy only.">
-<meta name="theme-color" content="#2A2140">
+<meta name="theme-color" content="#100B1E">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,6 +29,8 @@
     <input id="ob-birthday" type="date">
     <label for="ob-time">Birth time <span class="opt">(optional — unlocks moon &amp; rising)</span></label>
     <input id="ob-time" type="time">
+    <label for="ob-place">Birth place <span class="opt">(optional — city, sharpens your rising sign)</span></label>
+    <input id="ob-place" type="text" autocomplete="off" placeholder="City you were born in">
     <button id="ob-go" class="btn-primary">Read my stars</button>
     <p class="fine-print">Everything stays on your phone. No accounts, no tracking, no notes app apology posts.</p>
   </div>
@@ -68,7 +70,7 @@
     </div>
 
     <div class="card tarot">
-      <div class="tarot-card"><span id="tarot-icon"></span></div>
+      <div id="tarot-art" class="tarot-card"></div>
       <div>
         <p id="tarot-name" class="kicker kicker-purple"></p>
         <p id="tarot-text" class="body"></p>
@@ -83,6 +85,21 @@
     <div class="card tint-teal">
       <p class="kicker kicker-teal">♡ Today's gratitude</p>
       <p id="gratitude-text" class="body"></p>
+    </div>
+
+    <div class="card fb">
+      <p class="kicker kicker-gold">✦ Rate today's woo</p>
+      <div class="fb-row">
+        <button id="fb-up" class="fb-btn" aria-label="Loved it">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9M7 11l3.5-7a2.2 2.2 0 0 1 2.1 2.7L12 10h6.2a2 2 0 0 1 2 2.4l-1.2 5.6a2 2 0 0 1-2 1.6H7"/><path d="M7 11H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3"/></svg>
+          <span>Loved it</span>
+        </button>
+        <button id="fb-down" class="fb-btn" aria-label="Missed the mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(180deg)"><path d="M7 11v9M7 11l3.5-7a2.2 2.2 0 0 1 2.1 2.7L12 10h6.2a2 2 0 0 1 2 2.4l-1.2 5.6a2 2 0 0 1-2 1.6H7"/><path d="M7 11H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3"/></svg>
+          <span>Missed</span>
+        </button>
+      </div>
+      <p id="fb-thanks" class="fb-thanks" hidden>Logged. The universe reads all reviews.</p>
     </div>
   </section>
 </main>
@@ -101,7 +118,15 @@
       <input id="you-birthday" type="date">
       <label for="you-time">Birth time <span class="opt">(optional)</span></label>
       <input id="you-time" type="time">
+      <label for="you-place">Birth place <span class="opt">(optional — city)</span></label>
+      <input id="you-place" type="text" autocomplete="off" placeholder="City you were born in">
+      <p id="you-place-hint" class="place-hint"></p>
       <button id="you-save" class="btn-primary">Save changes</button>
+    </div>
+    <div class="card">
+      <p class="kicker kicker-gold">Feedback log</p>
+      <p id="fb-stats" class="body"></p>
+      <button id="fb-export" class="btn-secondary" hidden>Send feedback log to Mary</button>
     </div>
     <div class="card">
       <p class="kicker kicker-plum">About</p>
@@ -128,6 +153,7 @@
 <div id="toast" role="status"></div>
 
 <script src="content.js"></script>
+<script src="cards.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
