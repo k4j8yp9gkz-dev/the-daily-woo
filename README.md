@@ -22,7 +22,7 @@ so full combinations don't repeat for ~80 days.
 - `index.html` — app shell (onboarding, today, you screens)
 - `content.js` — the entire voice of the app: signs, readings, tarot, fashion, gratitude
 - `cards.js` — hand-drawn SVG art for all 22 major arcana
-- `app.js` — deterministic engine: seeding, real ascendant/lunar math, rendering, share, feedback log
+- `app.js` — deterministic engine: seeding, real ascendant/lunar math, rendering, share
 - `styles.css` — deep plum night-sky design system with gold accents
 - `sw.js` — network-first service worker (updates flow, offline works)
 - `manifest.webmanifest`, `icons/` — PWA install metadata
@@ -39,13 +39,6 @@ python3 -m http.server 8000
 
 Push to GitHub, enable Pages on the main branch, and share the URL. Bump the
 `CACHE` version in `sw.js` when shipping content updates.
-
-## Feedback loop
-
-Each day's memo can be rated (thumbs up/down) at the bottom of Today. Votes are
-stored on-device with the date, tarot card, and a snippet of the read; the You screen
-shows the tally and a "Send feedback log to Mary" button (share sheet / clipboard).
-Use the logs to tune the voice in `content.js`.
 
 ## Accuracy disclaimer
 

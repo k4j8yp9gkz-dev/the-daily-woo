@@ -2,7 +2,6 @@
 // Everything is deterministic: same person + same day = same memo, on any device.
 
 const STORE_KEY = "dailywoo.profile";
-const FEEDBACK_KEY = "dailywoo.feedback";
 
 // ---------- tiny deterministic toolkit ----------
 
@@ -221,7 +220,7 @@ function buildMemo(profile, today) {
   };
 }
 
-// ---------- profile & feedback storage ----------
+// ---------- profile storage ----------
 
 function loadProfile() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY)); } catch { return null; }
@@ -229,28 +228,6 @@ function loadProfile() {
 
 function saveProfile(p) {
   localStorage.setItem(STORE_KEY, JSON.stringify(p));
-}
-
-function loadFeedback() {
-  try { return JSON.parse(localStorage.getItem(FEEDBACK_KEY)) || []; } catch { return []; }
-}
-
-function saveVote(vote) {
-  const { memo } = window._memo;
-  const log = loadFeedback().filter(e => e.date !== dateKey(new Date()));
-  log.push({
-    date: dateKey(new Date()),
-    vote,
-    sign: memo.sign.name,
-    tarot: memo.tarot.name,
-    read: memo.read.slice(0, 90)
-  });
-  localStorage.setItem(FEEDBACK_KEY, JSON.stringify(log));
-}
-
-function todaysVote() {
-  const entry = loadFeedback().find(e => e.date === dateKey(new Date()));
-  return entry ? entry.vote : null;
 }
 
 // ---------- rendering ----------
@@ -265,13 +242,6 @@ function greeting(d) {
 function seasonLine(today, userSign) {
   const seasonSign = sunSign(dateKey(today));
   return seasonSign.name + " season · " + userSign.vibe;
-}
-
-function renderFeedbackButtons() {
-  const vote = todaysVote();
-  $("#fb-up").classList.toggle("voted", vote === "up");
-  $("#fb-down").classList.toggle("voted", vote === "down");
-  $("#fb-thanks").hidden = !vote;
 }
 
 function renderToday() {
@@ -303,7 +273,6 @@ function renderToday() {
   $("#gratitude-text").textContent = memo.gratitude;
 
   window._memo = { memo, dateLabel, profile };
-  renderFeedbackButtons();
 }
 
 function renderYou() {
@@ -324,13 +293,6 @@ function renderYou() {
   $("#you-birthday").value = profile.birthday;
   $("#you-time").value = profile.birthTime || "";
   $("#you-place").value = profile.birthPlace ? profile.birthPlace.name : "";
-
-  const log = loadFeedback();
-  const ups = log.filter(e => e.vote === "up").length;
-  $("#fb-stats").textContent = log.length
-    ? log.length + " day" + (log.length === 1 ? "" : "s") + " rated · " + ups + " up · " + (log.length - ups) + " down"
-    : "No ratings yet — the thumbs live at the bottom of Today.";
-  $("#fb-export").hidden = log.length === 0;
 }
 
 function show(screen) {
@@ -366,12 +328,6 @@ function shareMemo() {
     "Fashion boost: " + memo.fashion,
     "Gratitude: " + memo.gratitude
   ].join("\n"), "Copied — paste it in the group chat");
-}
-
-function exportFeedback() {
-  const log = loadFeedback();
-  const lines = log.map(e => e.date + " " + (e.vote === "up" ? "👍" : "👎") + " [" + e.tarot + "] " + e.read + "…");
-  return shareText("The Daily Woo — feedback log\n" + lines.join("\n"), "Log copied — send it to Mary");
 }
 
 let toastTimer;
@@ -421,10 +377,6 @@ document.addEventListener("DOMContentLoaded", () => {
     toast("Saved — the cosmos has been notified");
     renderYou();
   });
-
-  $("#fb-up").addEventListener("click", () => { saveVote("up"); renderFeedbackButtons(); toast("Noted — more of this energy coming up"); });
-  $("#fb-down").addEventListener("click", () => { saveVote("down"); renderFeedbackButtons(); toast("Noted — the stars will workshop it"); });
-  $("#fb-export").addEventListener("click", exportFeedback);
 
   for (const btn of document.querySelectorAll(".nav-btn")) {
     btn.addEventListener("click", () => {
