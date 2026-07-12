@@ -477,5 +477,16 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
-  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js");
+    // When a new version's worker takes over, refresh once so updates
+    // appear immediately instead of on the next-next visit.
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloaded || !hadController) return;
+      reloaded = true;
+      location.reload();
+    });
+  });
 }
