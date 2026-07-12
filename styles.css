@@ -69,6 +69,11 @@ body {
 .tint-plum { background: var(--card-raised); }
 .tint-pink { background: #341C2C; border-color: #57304A; }
 .tint-teal { background: #14322A; border-color: #235A49; }
+.tint-amber { background: #33260F; border-color: #5E4A22; }
+
+.meal-intro { margin-bottom: 8px; }
+.meal-name { font-family: var(--serif); font-size: 17px; color: var(--gold); margin-bottom: 5px; line-height: 1.4; }
+.tint-amber .body { color: #EBD9B4; }
 
 .kicker {
   font-size: 11.5px;
@@ -128,17 +133,111 @@ body {
 
 /* tarot */
 
-.tarot { display: flex; gap: 14px; align-items: flex-start; }
+.tarot { display: flex; gap: 16px; align-items: center; }
 
 .tarot-card {
   flex-shrink: 0;
-  width: 92px;
+  width: 124px;
   transition: transform 0.5s;
+  cursor: zoom-in;
 }
 
-.tarot-card svg { display: block; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45); }
+.tarot-card svg { display: block; width: 100%; height: auto; border-radius: 10px; box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55); }
 
 .tarot-card.reversed { transform: rotate(180deg); }
+
+/* peek at tomorrow */
+
+.peek-btn {
+  width: 100%;
+  padding: 13px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gold);
+  background: none;
+  border: 1px solid #5E4A22;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.peek-btn:active { transform: scale(0.98); }
+
+/* overlays */
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 7, 20, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 24px;
+}
+
+#overlay[hidden] { display: none; }
+
+#sheet {
+  background: var(--card-raised);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px 22px;
+  max-width: 420px;
+  width: 100%;
+}
+
+#sheet[hidden], #zoom[hidden] { display: none; }
+
+.sheet-title { font-family: var(--serif); font-size: 21px; color: var(--gold); margin-bottom: 10px; }
+
+.sheet-intro { font-size: 12.5px; color: var(--text-faint); font-style: italic; margin-bottom: 12px; line-height: 1.5; }
+
+.sheet-text { font-family: var(--serif); font-size: 16px; line-height: 1.6; color: var(--text); }
+
+.sheet-note { margin-top: 12px; padding-top: 12px; border-top: 0.5px solid var(--line); font-size: 12.5px; color: var(--lavender); }
+
+.sheet-close {
+  margin-top: 18px;
+  width: 100%;
+  padding: 11px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg-deep);
+  background: var(--gold);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+#zoom { text-align: center; }
+
+.zoom-card { width: min(76vw, 320px); margin: 0 auto; transition: transform 0.4s; }
+
+.zoom-card svg { display: block; width: 100%; height: auto; border-radius: 14px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7); }
+
+.zoom-card.reversed { transform: rotate(180deg); }
+
+.zoom-caption { margin-top: 14px; font-family: var(--serif); font-size: 16px; color: var(--gold); letter-spacing: 0.04em; }
+
+/* diet pills */
+
+.diet-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.diet-pill {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--bg-deep);
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.diet-pill.selected { background: var(--gold); color: var(--bg-deep); border-color: var(--gold); }
 
 /* nav */
 
@@ -249,7 +348,13 @@ input:focus { outline: 2px solid var(--gold); outline-offset: 1px; border-color:
   font-weight: 600;
   padding: 7px 12px;
   border-radius: 999px;
+  font-family: var(--sans);
+  cursor: pointer;
 }
+
+.badge:active { transform: scale(0.97); }
+
+.badge-more { color: var(--gold); margin-left: 6px; font-weight: 700; }
 
 /* toast */
 

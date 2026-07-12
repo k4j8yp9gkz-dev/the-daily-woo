@@ -184,6 +184,16 @@ function fill(template, ctx) {
   return template.replace(/\{(\w+)\}/g, (_, k) => ctx[k] ?? "");
 }
 
+function pickMeal(profile, today) {
+  const diet = profile.diet || "omni";
+  const pool = WOO.meals.filter(m => m.diets.includes(diet));
+  const element = WOO.elementOf[sunSign(profile.birthday).name];
+  return {
+    intro: rotate(WOO.elementIntros[element], "mealintro", profile, today),
+    meal: rotate(pool, "meals-" + diet, profile, today)
+  };
+}
+
 function buildMemo(profile, today) {
   const sign = sunSign(profile.birthday);
   const rand = mulberry32(hashStr(dateKey(today) + "|" + profile.name + "|" + profile.birthday));
@@ -216,6 +226,7 @@ function buildMemo(profile, today) {
     tarotIdx, tarotReversed: reversed,
     tarot: { name: card.name + (reversed ? " (reversed)" : ""), text: reversed ? card.rev : card.up },
     fashion: fill(rotate(WOO.fashion, "fashion", profile, today), ctx),
+    kitchen: pickMeal(profile, today),
     gratitude: rotate(WOO.gratitude, "gratitude", profile, today)
   };
 }
@@ -244,16 +255,26 @@ function seasonLine(today, userSign) {
   return seasonSign.name + " season · " + userSign.vibe;
 }
 
+let dayOffset = 0; // 0 = today, 1 = peeking at tomorrow
+
+function viewDate() {
+  const n = new Date();
+  return new Date(n.getFullYear(), n.getMonth(), n.getDate() + dayOffset, n.getHours(), n.getMinutes());
+}
+
 function renderToday() {
   const profile = loadProfile();
-  const today = new Date();
+  const today = viewDate();
   const memo = buildMemo(profile, today);
   const dateLabel = today.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 
   $("#hdr-date").textContent = dateLabel;
   $("#hdr-moon").textContent = "☾ " + memo.phase.name;
-  $("#hdr-greeting").textContent = greeting(today) + ", " + profile.name.split(" ")[0];
-  $("#hdr-sub").textContent = seasonLine(today, memo.sign);
+  $("#hdr-greeting").textContent = (dayOffset === 1 ? "Tomorrow" : greeting(today)) + ", " + profile.name.split(" ")[0];
+  $("#hdr-sub").textContent = dayOffset === 1
+    ? "A sneak preview — subject to cosmic revision"
+    : seasonLine(today, memo.sign);
+  $("#peek-btn").textContent = dayOffset === 1 ? "☀ Back to today" : "☾ Peek at tomorrow";
 
   $("#read-text").textContent = memo.read;
   $("#chart-note").textContent = memo.chartNote || "";
@@ -270,6 +291,9 @@ function renderToday() {
   $("#tarot-art").classList.toggle("reversed", memo.tarotReversed);
 
   $("#fashion-text").textContent = memo.fashion;
+  $("#meal-intro").textContent = memo.kitchen.intro;
+  $("#meal-name").textContent = memo.kitchen.meal.name;
+  $("#meal-line").textContent = memo.kitchen.meal.line;
   $("#gratitude-text").textContent = memo.gratitude;
 
   window._memo = { memo, dateLabel, profile };
@@ -278,14 +302,18 @@ function renderToday() {
 function renderYou() {
   const profile = loadProfile();
   const sun = sunSign(profile.birthday);
-  let badges = `<span class="badge">${sun.glyph} ${sun.name} sun</span>`;
+  const badge = (placement, sign, approx) =>
+    `<button class="badge" data-placement="${placement}" data-sign="${sign.name}"${approx ? ' data-approx="1"' : ""}>${sign.glyph} ${sign.name} ${placement}${approx ? " ~" : ""}<span class="badge-more">›</span></button>`;
+  let badges = badge("sun", sun);
   if (profile.birthTime) {
     const moon = moonSignAtBirth(profile);
     const rising = risingSign(profile);
-    badges += `<span class="badge">${moon.glyph} ${moon.name} moon</span>`;
-    badges += `<span class="badge">${rising.sign.glyph} ${rising.sign.name} rising${rising.approx ? " ~" : ""}</span>`;
+    badges += badge("moon", moon) + badge("rising", rising.sign, rising.approx);
   }
   $("#you-badges").innerHTML = badges;
+  for (const pill of document.querySelectorAll("#you-diet .diet-pill")) {
+    pill.classList.toggle("selected", pill.dataset.diet === (profile.diet || "omni"));
+  }
   $("#you-place-hint").textContent = profile.birthPlace
     ? (profile.birthPlace.lat != null ? "Charted: " + profile.birthPlace.name : "Couldn't chart \"" + profile.birthPlace.name + "\" — rising stays approximate (~)")
     : (profile.birthTime ? "Add a birth place to sharpen your rising sign" : "");
@@ -303,6 +331,40 @@ function show(screen) {
   $("#nav").hidden = screen === "onboarding";
   if (screen === "today") renderToday();
   if (screen === "you") renderYou();
+}
+
+// ---------- overlays (placement sheet + tarot zoom) ----------
+
+function openOverlay(which) {
+  $("#overlay").hidden = false;
+  $("#sheet").hidden = which !== "sheet";
+  $("#zoom").hidden = which !== "zoom";
+  document.body.style.overflow = "hidden";
+}
+
+function closeOverlay() {
+  $("#overlay").hidden = true;
+  document.body.style.overflow = "";
+}
+
+function openPlacement(placement, signName, approx) {
+  const sign = WOO.signs.find(s => s.name === signName);
+  $("#sheet-title").textContent = sign.glyph + " " + signName + " " + placement;
+  $("#sheet-intro").textContent = WOO.placements[placement].intro;
+  $("#sheet-text").textContent = WOO.placements[placement][signName];
+  $("#sheet-note").textContent = approx
+    ? "This one's approximate — it's based on your birth time alone. Add a birth city and the math gets serious."
+    : "";
+  $("#sheet-note").hidden = !approx;
+  openOverlay("sheet");
+}
+
+function openTarotZoom() {
+  const { memo } = window._memo;
+  $("#zoom-card").innerHTML = tarotArt(memo.tarotIdx);
+  $("#zoom-card").classList.toggle("reversed", memo.tarotReversed);
+  $("#zoom-caption").textContent = memo.tarot.name;
+  openOverlay("zoom");
 }
 
 // ---------- share & export ----------
@@ -326,6 +388,7 @@ function shareMemo() {
     memo.tarot.name + ": " + memo.tarot.text,
     "Lucky number " + memo.lucky + " · Power color: " + memo.color.name,
     "Fashion boost: " + memo.fashion,
+    "On the menu: " + memo.kitchen.meal.name,
     "Gratitude: " + memo.gratitude
   ].join("\n"), "Copied — paste it in the group chat");
 }
@@ -346,6 +409,8 @@ async function readForm(prefix) {
   const birthday = $("#" + prefix + "-birthday").value;
   const birthTime = $("#" + prefix + "-time").value || null;
   const placeText = $("#" + prefix + "-place").value.trim();
+  const dietPill = document.querySelector("#" + prefix + "-diet .diet-pill.selected");
+  const diet = dietPill ? dietPill.dataset.diet : (loadProfile() && loadProfile().diet) || "omni";
   if (!name || !birthday) { toast("Name and birthday, please — the stars need coordinates"); return null; }
 
   let birthPlace = null;
@@ -359,7 +424,7 @@ async function readForm(prefix) {
       if (birthPlace.lat == null) toast("Couldn't find that city — rising sign stays approximate");
     }
   }
-  return { name, birthday, birthTime, birthPlace };
+  return { name, birthday, birthTime, birthPlace, diet };
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -381,9 +446,32 @@ document.addEventListener("DOMContentLoaded", () => {
   for (const btn of document.querySelectorAll(".nav-btn")) {
     btn.addEventListener("click", () => {
       if (btn.dataset.screen === "share") { shareMemo(); return; }
+      dayOffset = 0;
       show(btn.dataset.screen);
     });
   }
+
+  $("#peek-btn").addEventListener("click", () => {
+    dayOffset = dayOffset === 0 ? 1 : 0;
+    renderToday();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  $("#you-badges").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-placement]");
+    if (b) openPlacement(b.dataset.placement, b.dataset.sign, !!b.dataset.approx);
+  });
+
+  $("#you-diet").addEventListener("click", (e) => {
+    const pill = e.target.closest(".diet-pill");
+    if (!pill) return;
+    for (const p of document.querySelectorAll("#you-diet .diet-pill")) p.classList.toggle("selected", p === pill);
+  });
+
+  $("#tarot-art").addEventListener("click", openTarotZoom);
+  $("#overlay").addEventListener("click", (e) => {
+    if (e.target.closest("#sheet-close") || !e.target.closest("#sheet, #zoom-card")) closeOverlay();
+  });
 
   show(loadProfile() ? "today" : "onboarding");
 });

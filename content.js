@@ -310,5 +310,117 @@ const WOO = {
     "Capricorn": "Capricorn rising is mistaken for the boss, constantly",
     "Aquarius": "Aquarius rising is the reference the room quotes later",
     "Pisces": "Pisces rising softens rooms and sharpens ideas"
-  }
+  },
+
+  // What each placement says about you. Sun = the engine, Moon = the inner
+  // operating system, Rising = the entrance you make.
+  placements: {
+    sun: {
+      intro: "Your sun sign is the engine — what actually drives you when nobody's assigning the work.",
+      "Aries": "You are powered by the word 'first'. Starting things is your love language, waiting is your villain origin story, and every finish line you cross was mostly a formality — you won it at the starting gun.",
+      "Taurus": "You build slowly, beautifully, and permanently. People mistake your patience for passivity right up until they notice you own everything in the room. Comfort isn't your weakness; it's your business model.",
+      "Gemini": "Your brain runs more open tabs than a browser should survive, and somehow they're all loading. You collect skills, people, and punchlines — and your superpower is connecting things nobody else realized were related.",
+      "Cancer": "You read rooms like quarterly reports. Your intuition about people is functionally a professional credential, and everything you build — teams, homes, careers — is built to protect what you love.",
+      "Leo": "You were born with stage presence and the audacity to use it. Generosity is your flex: you want everyone shining, as long as it's understood who installed the lighting.",
+      "Virgo": "You see the flaw, the fix, and the five-step plan before anyone else has finished reading the brief. Excellence isn't your goal; it's your resting state. The world calls it perfectionism. You call it Tuesday.",
+      "Libra": "You are the diplomatic weapon every negotiation wishes it had. Beauty, balance, and the perfectly-worded email are your natural habitat — and people say yes to you before realizing they were undecided.",
+      "Scorpio": "You operate at a depth most people don't know exists. Total commitment or total absence — there is no middle setting. You'd be intimidating even if you weren't right so often.",
+      "Sagittarius": "You aim at horizons other people haven't googled yet. Optimism plus honesty plus zero patience for small plans — your career is less a ladder, more a series of confident leaps that keep landing.",
+      "Capricorn": "You were the CEO of something by age nine. The mountain isn't a metaphor to you; it's a to-do list. Your dry wit is the reward for anyone who keeps up.",
+      "Aquarius": "You live about five years ahead of the meeting and have made peace with the commute. Rules are suggestions, conventions are drafts, and your weirdest idea is usually the one that ends up funded.",
+      "Pisces": "You feel your way to answers other people need spreadsheets for. Imagination is your infrastructure — and when you finally show them what you've been quietly making, rooms go silent in the good way."
+    },
+    moon: {
+      intro: "Your moon sign is the inner operating system — how you actually recharge, process, and feel your way through it all.",
+      "Aries": "Inside, you process feelings at highway speed: flare, resolve, done. You recharge by winning at something — anything — including being first out of the parking lot.",
+      "Taurus": "Your inner world demands good blankets, better snacks, and zero surprises. You metabolize stress through comfort and routine, and your loyalty, once given, has the structural integrity of a bank vault.",
+      "Gemini": "You process emotions by narrating them — to a friend, a journal, a group chat, occasionally a stranger. Your inner life is a talk show, and honestly the ratings are great.",
+      "Cancer": "You feel everything at full resolution and remember all of it. Home is your recharge station and your fortress; you don't have moods so much as tides, and you've learned to sail them.",
+      "Leo": "Your inner world runs on appreciation the way engines run on fuel. When you're seen, you're unstoppable. When you're overlooked, you don't sulk — you just quietly relocate the sunshine.",
+      "Virgo": "You self-soothe by organizing something. A drawer, a plan, a person's entire life trajectory. Anxiety doesn't stand a chance against your label maker.",
+      "Libra": "Your inner peace is load-bearing on your outer aesthetics — when the room is beautiful and nobody's fighting, you are fully operational. You process by weighing, always weighing.",
+      "Scorpio": "You feel things at a depth that would require other people to file paperwork. You process privately, completely, and emerge transformed — the emotional equivalent of a controlled burn.",
+      "Sagittarius": "You metabolize bad days by planning escapes — trips, projects, entire new lives sketched on napkins. Your inner compass always points somewhere more interesting.",
+      "Capricorn": "You handle feelings the way you handle everything: on schedule, with a plan, preferably alone with something ambitious. Your softness is real; it's just behind excellent security.",
+      "Aquarius": "You process emotions by zooming out until they look like data, then quietly acting on what you found. Detached? No — you just run your feelings through peer review.",
+      "Pisces": "Your inner world has better production design than most films. You absorb everyone's feelings within a mile radius, so your recharge time isn't a luxury — it's maintenance on the antenna."
+    },
+    rising: {
+      intro: "Your rising sign is the entrance you make — the first-impression packaging the world meets before the rest of you arrives.",
+      "Aries": "You read as direct, decisive, and slightly ahead of everyone else's walking pace. Rooms assume you're in charge of something, and honestly, by the end of the meeting you usually are.",
+      "Taurus": "You arrive calm, composed, and somehow expensive-looking regardless of budget. People trust you on sight — you have the aura of someone whose word is a contract.",
+      "Gemini": "You lead with wit and everyone notices. First impressions of you involve laughing within ninety seconds and later realizing they told you their whole life story.",
+      "Cancer": "You read as warm and safe — people confide in you at the coffee machine on day one. Don't mistake it for softness on their part: being trusted instantly is a professional cheat code.",
+      "Leo": "Your entrance has its own lighting design. People remember meeting you, often in more flattering detail than what actually happened, which is exactly the brand.",
+      "Virgo": "You present as put-together and quietly competent — the person others double-check their work against. Your first impression is 'this one reads the footnotes', and it opens doors.",
+      "Libra": "You arrive charming and symmetrical, and the room recalibrates its manners. People assume you're the reasonable one, which gives you astonishing leverage. Use it kindly.",
+      "Scorpio": "Your first impression is magnetic and slightly unreadable — people either want to know your secrets or assume you already know theirs. Both are useful.",
+      "Sagittarius": "You read as confident, candid, and slightly larger than the room. Strangers take your recommendations for restaurants and life choices within minutes.",
+      "Capricorn": "You get mistaken for the most senior person present, constantly, including when you were the intern. The world hands authority to your entrance; the rest of your chart decides what to build with it.",
+      "Aquarius": "You come across as the interesting one — original, a little unplaceable, quoted after the meeting ends. People can't categorize you fast, so they remember you instead.",
+      "Pisces": "You arrive gentle and slightly dreamlike, and people relax without knowing why. It disarms rooms — which is precisely when your sharpest ideas land unopposed."
+    }
+  },
+
+  elementOf: {
+    "Aries": "Fire", "Leo": "Fire", "Sagittarius": "Fire",
+    "Taurus": "Earth", "Virgo": "Earth", "Capricorn": "Earth",
+    "Gemini": "Air", "Libra": "Air", "Aquarius": "Air",
+    "Cancer": "Water", "Scorpio": "Water", "Pisces": "Water"
+  },
+
+  elementIntros: {
+    "Fire": [
+      "Fire sign fuel required: something with heat, char, or attitude.",
+      "Your element runs hot today — feed the flame, don't smother it.",
+      "Fire signs don't simmer. Tonight's plate shouldn't either."
+    ],
+    "Earth": [
+      "Earth sign appetite: grounding, generous, worth setting the table for.",
+      "Your element wants substance tonight — roots, grains, the good bowl.",
+      "Earth signs eat like the harvest personally reported to them."
+    ],
+    "Air": [
+      "Air sign menu: bright, fresh, assembled with opinions.",
+      "Your element wants something light enough to eat mid-conversation.",
+      "Air signs season with citrus and commentary."
+    ],
+    "Water": [
+      "Water sign cooking: soothing, brothy, emotionally supportive.",
+      "Your element wants comfort in a bowl tonight. Obey.",
+      "Water signs know dinner is also therapy."
+    ]
+  },
+
+  // diets: which eaters this meal suits — omni, pesc, veg, vegan.
+  meals: [
+    { name: "Charred lemon-pepper salmon with crispy potatoes", line: "Rich enough for a victory, fast enough for a Tuesday.", diets: ["omni", "pesc"] },
+    { name: "Golden chickpea coconut curry", line: "Turmeric is basically bottled sunshine, and you deserve the whole ladle.", diets: ["omni", "pesc", "veg", "vegan"] },
+    { name: "Brown butter mushroom risotto", line: "Stirring is a meditation. The parmesan is the reward for enlightenment.", diets: ["omni", "pesc", "veg"] },
+    { name: "Fire-roasted tomato soup with a serious grilled cheese", line: "The power lunch of people who have nothing to prove.", diets: ["omni", "pesc", "veg"] },
+    { name: "Citrus-chili shrimp tacos with quick-pickled onions", line: "Bright, fast, and a little dramatic — like your best decisions.", diets: ["omni", "pesc"] },
+    { name: "Herby lemon roast chicken with whatever vegetables need using", line: "A classic, because you're building a legacy, not a fad.", diets: ["omni"] },
+    { name: "Miso-glazed eggplant over sesame rice", line: "Umami is the universe's way of saying 'trust the process'.", diets: ["omni", "pesc", "veg", "vegan"] },
+    { name: "Spicy peanut noodles with crunchy vegetables", line: "Fifteen minutes, one bowl, disproportionate joy.", diets: ["omni", "pesc", "veg", "vegan"] },
+    { name: "White bean and rosemary stew with garlic toast", line: "Peasant food, king energy.", diets: ["omni", "pesc", "veg", "vegan"] },
+    { name: "Seared steak with chimichurri and blistered peppers", line: "For days when the calendar needed to be shown who's boss.", diets: ["omni"] },
+    { name: "Lemony orzo with spinach, feta, and too much dill", line: "Tastes like a vacation you can expense to a weeknight.", diets: ["omni", "pesc", "veg"] },
+    { name: "Crispy tofu banh-mi-style bowls", line: "Crunchy, tangy, assembled — the meal equivalent of a well-run meeting.", diets: ["omni", "pesc", "veg", "vegan"] },
+    { name: "Sheet-pan sausage with roasted grapes and onions", line: "One pan. Zero dishes drama. Maximum plot twist (the grapes).", diets: ["omni"] },
+    { name: "Coconut lime lentil soup", line: "Simmers itself while you finish being brilliant.", diets: ["omni", "pesc", "veg", "vegan"] },
+    { name: "Garlic butter pasta with whatever herbs survived the week", line: "Simplicity executed perfectly — the most underrated flex in any kitchen.", diets: ["omni", "pesc", "veg"] },
+    { name: "Blackened fish with mango salsa", line: "Sweet, hot, and impossible to eat while feeling pessimistic.", diets: ["omni", "pesc"] },
+    { name: "Loaded sweet potatoes with black beans and lime crema", line: "Humble root vegetable, main-character styling.", diets: ["omni", "pesc", "veg"] },
+    { name: "Mushroom and caramelized onion galette", line: "Rustic on purpose. Impressive by accident. Ideal ratio.", diets: ["omni", "pesc", "veg"] },
+    { name: "Gochujang-glazed crispy cauliflower with rice", line: "Vegetables with a five-year plan and the confidence to match.", diets: ["omni", "pesc", "veg", "vegan"] },
+    { name: "Slow-simmered bolognese over anything", line: "Patience you can taste. Leftovers you'll guard.", diets: ["omni"] },
+    { name: "Smashed chickpea salad sandwiches on good bread", line: "Deceptively simple, like all the best power moves.", diets: ["omni", "pesc", "veg", "vegan"] },
+    { name: "Harissa roasted carrots with whipped tahini", line: "A side dish that unionized and became the main.", diets: ["omni", "pesc", "veg", "vegan"] },
+    { name: "Pesto white pizza with arugula thrown on like confetti", line: "Order it or make it — the stars only care that there's a celebratory element.", diets: ["omni", "pesc", "veg"] },
+    { name: "Ginger-scallion poached chicken and rice", line: "Quietly perfect. The comfort food of people with excellent judgment.", diets: ["omni"] },
+    { name: "Summer rolls with peanut sauce you'll want to drink", line: "Assembly, not cooking — delegation as a culinary philosophy.", diets: ["omni", "pesc", "veg", "vegan"] },
+    { name: "Tuna melt on sourdough, no apologies", line: "Retro excellence. Some classics survived for a reason.", diets: ["omni", "pesc"] },
+    { name: "Roasted vegetable grain bowl with a jammy egg", line: "Balanced, colorful, quietly superior — a personality goal in bowl form.", diets: ["omni", "pesc", "veg"] },
+    { name: "Dark chocolate chili (yes, in the chili)", line: "Secret-ingredient energy for a secret-weapon kind of day.", diets: ["omni", "pesc", "veg", "vegan"] }
+  ]
 };

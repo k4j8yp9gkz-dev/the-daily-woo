@@ -82,10 +82,19 @@
       <p id="fashion-text" class="body"></p>
     </div>
 
+    <div class="card tint-amber">
+      <p class="kicker kicker-gold">⚘ Cosmic kitchen</p>
+      <p id="meal-intro" class="body meal-intro"></p>
+      <p id="meal-name" class="meal-name"></p>
+      <p id="meal-line" class="body"></p>
+    </div>
+
     <div class="card tint-teal">
       <p class="kicker kicker-teal">♡ Today's gratitude</p>
       <p id="gratitude-text" class="body"></p>
     </div>
+
+    <button id="peek-btn" class="peek-btn">☾ Peek at tomorrow</button>
   </section>
 </main>
 
@@ -106,6 +115,13 @@
       <label for="you-place">Birth place <span class="opt">(optional — city)</span></label>
       <input id="you-place" type="text" autocomplete="off" placeholder="City you were born in">
       <p id="you-place-hint" class="place-hint"></p>
+      <label>Cosmic kitchen diet</label>
+      <div id="you-diet" class="diet-row">
+        <button class="diet-pill" data-diet="omni">Omnivore</button>
+        <button class="diet-pill" data-diet="pesc">Pescatarian</button>
+        <button class="diet-pill" data-diet="veg">Vegetarian</button>
+        <button class="diet-pill" data-diet="vegan">Vegan</button>
+      </div>
       <button id="you-save" class="btn-primary">Save changes</button>
     </div>
     <div class="card">
@@ -129,6 +145,20 @@
     <span>You</span>
   </button>
 </nav>
+
+<div id="overlay" hidden>
+  <div id="sheet" role="dialog" aria-modal="true" hidden>
+    <p id="sheet-title" class="sheet-title"></p>
+    <p id="sheet-intro" class="sheet-intro"></p>
+    <p id="sheet-text" class="sheet-text"></p>
+    <p id="sheet-note" class="sheet-note" hidden></p>
+    <button id="sheet-close" class="sheet-close">Got it</button>
+  </div>
+  <div id="zoom" role="dialog" aria-modal="true" aria-label="Tarot card" hidden>
+    <div id="zoom-card" class="zoom-card"></div>
+    <p id="zoom-caption" class="zoom-caption"></p>
+  </div>
+</div>
 
 <div id="toast" role="status"></div>
 
