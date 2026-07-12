@@ -1,6 +1,7 @@
 // The Daily Woo — app logic.
 // Everything is deterministic: same person + same day = same memo, on any device.
 
+const APP_VERSION = "v7";
 const STORE_KEY = "dailywoo.profile";
 
 // ---------- tiny deterministic toolkit ----------
@@ -302,6 +303,26 @@ function renderToday() {
   $("#tarot-art").innerHTML = tarotArt(memo.tarotIdx);
   $("#tarot-art").classList.toggle("reversed", memo.tarotReversed);
 
+  const pchip = (placement, sign, approx) =>
+    `<button class="pchip" data-placement="${placement}" data-sign="${sign.name}"${approx ? ' data-approx="1"' : ""}>
+      <span class="pchip-glyph">${sign.glyph}</span>
+      <span class="pchip-label">${sign.name}</span>
+      <span class="pchip-tag">${placement}${approx ? " ~" : ""} ›</span>
+    </button>`;
+  let pchips = pchip("sun", memo.sign);
+  if (profile.birthTime) {
+    const moonS = moonSignAtBirth(profile);
+    const risingS = risingSign(profile);
+    pchips += pchip("moon", moonS) + pchip("rising", risingS.sign, risingS.approx);
+  } else {
+    pchips += `<button class="pchip pchip-locked" data-goto="you">
+      <span class="pchip-glyph">☾</span>
+      <span class="pchip-label">Moon &amp; rising</span>
+      <span class="pchip-tag">unlock ›</span>
+    </button>`;
+  }
+  $("#today-placements").innerHTML = pchips;
+
   $("#fashion-text").textContent = memo.fashion;
   $("#meal-intro").textContent = memo.kitchen.intro;
   $("#meal-name").textContent = memo.kitchen.meal.name;
@@ -490,10 +511,17 @@ document.addEventListener("DOMContentLoaded", () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
-  $("#you-badges").addEventListener("click", (e) => {
+  const placementTap = (e) => {
+    const go = e.target.closest("[data-goto]");
+    if (go) { show(go.dataset.goto); return; }
     const b = e.target.closest("[data-placement]");
     if (b) openPlacement(b.dataset.placement, b.dataset.sign, !!b.dataset.approx);
-  });
+  };
+  $("#you-badges").addEventListener("click", placementTap);
+  $("#today-placements").addEventListener("click", placementTap);
+
+  $("#app-version").textContent = "The Daily Woo · " + APP_VERSION;
+  console.log("The Daily Woo " + APP_VERSION);
 
   $("#you-diet").addEventListener("click", (e) => {
     const pill = e.target.closest(".diet-pill");

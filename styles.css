@@ -112,6 +112,36 @@ body {
 .tint-teal .body { color: var(--teal-soft); }
 .tint-plum .body { color: var(--text); }
 
+/* placement chips on Today */
+
+.pchip-row { display: flex; gap: 8px; }
+
+.pchip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 6px 10px;
+  background: var(--card-raised);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+
+.pchip:active { transform: scale(0.96); }
+
+.pchip-glyph { font-size: 20px; color: var(--gold); line-height: 1; }
+
+.pchip-label { font-size: 13px; font-weight: 600; color: var(--text); }
+
+.pchip-tag { font-size: 11px; color: var(--gold); font-weight: 600; text-transform: capitalize; }
+
+.pchip-locked .pchip-glyph, .pchip-locked .pchip-label { color: var(--text-dim); }
+
+.version { margin-top: 10px; font-size: 11.5px; color: var(--text-faint); }
+
 /* chips */
 
 .chip-row { display: flex; gap: 10px; }
