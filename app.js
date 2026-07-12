@@ -161,13 +161,25 @@ function luckyNumber(profile, today) {
 // ---------- geocoding (one call at save time; result stored on-device) ----------
 
 async function geocode(placeText) {
+  // People type "Halifax, Nova Scotia, Canada" — the API wants just the city,
+  // so search on the first part and use the rest to pick among matches.
+  const parts = placeText.split(",").map(s => s.trim()).filter(Boolean);
+  const hint = parts.slice(1).join(" ").toLowerCase();
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 7000);
   try {
-    const url = "https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&format=json&name=" + encodeURIComponent(placeText);
+    const url = "https://geocoding-api.open-meteo.com/v1/search?count=5&language=en&format=json&name=" + encodeURIComponent(parts[0] || placeText);
     const res = await fetch(url, { signal: ctl.signal });
     const data = await res.json();
-    const hit = data.results && data.results[0];
+    const results = data.results || [];
+    let hit = results[0];
+    if (hint) {
+      const better = results.find(r => {
+        const meta = [r.admin1, r.admin2, r.country, r.country_code].filter(Boolean).join(" ").toLowerCase();
+        return hint.split(/\s+/).every(w => meta.includes(w));
+      });
+      if (better) hit = better;
+    }
     if (!hit) return { name: placeText };
     const label = [hit.name, hit.admin1, hit.country_code].filter(Boolean).join(", ");
     return { name: label, lat: hit.latitude, lon: hit.longitude, tz: hit.timezone };
@@ -302,15 +314,36 @@ function renderToday() {
 function renderYou() {
   const profile = loadProfile();
   const sun = sunSign(profile.birthday);
-  const badge = (placement, sign, approx) =>
-    `<button class="badge" data-placement="${placement}" data-sign="${sign.name}"${approx ? ' data-approx="1"' : ""}>${sign.glyph} ${sign.name} ${placement}${approx ? " ~" : ""}<span class="badge-more">›</span></button>`;
-  let badges = badge("sun", sun);
+  const TEASERS = {
+    sun: "The engine — what actually drives you",
+    moon: "Your inner operating system",
+    rising: "The entrance you make"
+  };
+  const tile = (placement, sign, approx) =>
+    `<button class="tile" data-placement="${placement}" data-sign="${sign.name}"${approx ? ' data-approx="1"' : ""}>
+      <span class="tile-glyph">${sign.glyph}</span>
+      <span class="tile-body">
+        <span class="tile-title">${sign.name} ${placement}${approx ? " ~" : ""}</span>
+        <span class="tile-sub">${TEASERS[placement]}${approx ? " · tap for the fine print" : " · tap to read yours"}</span>
+      </span>
+      <span class="tile-chev">›</span>
+    </button>`;
+  let tiles = tile("sun", sun);
   if (profile.birthTime) {
     const moon = moonSignAtBirth(profile);
     const rising = risingSign(profile);
-    badges += badge("moon", moon) + badge("rising", rising.sign, rising.approx);
+    tiles += tile("moon", moon) + tile("rising", rising.sign, rising.approx);
+  } else {
+    tiles += `<div class="tile tile-locked">
+      <span class="tile-glyph">☾</span>
+      <span class="tile-body">
+        <span class="tile-title">Moon &amp; rising</span>
+        <span class="tile-sub">Add your birth time below to unlock these</span>
+      </span>
+      <span class="tile-chev">🔒</span>
+    </div>`;
   }
-  $("#you-badges").innerHTML = badges;
+  $("#you-badges").innerHTML = tiles;
   for (const pill of document.querySelectorAll("#you-diet .diet-pill")) {
     pill.classList.toggle("selected", pill.dataset.diet === (profile.diet || "omni"));
   }
@@ -416,8 +449,8 @@ async function readForm(prefix) {
   let birthPlace = null;
   if (placeText) {
     const prev = loadProfile() && loadProfile().birthPlace;
-    if (prev && prev.name.toLowerCase() === placeText.toLowerCase()) {
-      birthPlace = prev; // unchanged — keep coordinates, skip the network
+    if (prev && prev.lat != null && prev.name.toLowerCase() === placeText.toLowerCase()) {
+      birthPlace = prev; // unchanged and already charted — skip the network
     } else {
       toast("Consulting the atlas…");
       birthPlace = await geocode(placeText);
